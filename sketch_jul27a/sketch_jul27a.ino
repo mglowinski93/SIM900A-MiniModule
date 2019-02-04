@@ -18,6 +18,7 @@ bool lastFireAlarmState = 1;
 bool centralDamageState = 1;
 bool lastCentralDamageState = 1;
 const short unsigned int sendingSMSRetries = 10;
+String smsContent = "";
 
 //String phoneNumbers[] = {"+48605108182", "+48502159172"};
 String phoneNumbers[] = {"+48605108182"};
@@ -83,6 +84,23 @@ void setup()
         delay(1000);
     }
     logEvent(SMSModeMessage);
+    
+    logEvent("Setting module to send SMS data to serial out upon receipt");
+    initCounter = 0;
+    String SMSReadMessage = "Module set to send SMS data to serial out upon receipt";
+    while(!responseSuccessful())
+    {
+        SIM900.println("AT+CNMI=2,2,0,0,0");
+        initCounter++;
+        if(initCounter > 100)
+        {
+          SMSReadMessage = "Failed to setup module to send SMS data to serial out upon receipt";
+          break;  
+        }
+        delay(1000);
+    }
+    logEvent(SMSModeMessage);
+    
 }
 
 
@@ -124,6 +142,12 @@ void loop()
   if(!queue.isEmpty())
   { 
      sendSMS(queue.pop()); 
+  }
+
+  while(SIM900.available())
+  {
+    smsContent = SIM900.readString();
+    Serial.println(smsContent);  
   }
 }
 
